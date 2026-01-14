@@ -1,0 +1,320 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday!</title>
+    <style>
+        :root {
+            --pink: #ff3264;
+        }
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+        }
+
+        #mainText {
+            position: absolute;
+            top: 8%;
+            width: 100%;
+            text-align: center;
+            z-index: 5;
+            font-size: clamp(1.4rem, 6vw, 2.5rem);
+            text-shadow: 0 0 15px var(--pink);
+            pointer-events: none;
+            padding: 0 15px;
+            box-sizing: border-box;
+        }
+
+        #btnWrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+        }
+
+        button {
+            background-color: var(--pink);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 15px 40px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 5px 15px rgba(255, 50, 100, 0.3);
+            outline: none;
+        }
+
+        #noBtn {
+            z-index: 11;
+            white-space: nowrap;
+        }
+
+        #countdown {
+            position: fixed;
+            top: 25%;
+            font-size: clamp(2.2rem, 12vw, 4.5rem);
+            color: var(--pink);
+            z-index: 100;
+            display: none;
+            text-shadow: 0 0 25px var(--pink);
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        canvas {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #noPopup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.96);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        #finalOverlay {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 88%;
+            max-width: 480px;
+            padding: 40px 30px;
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px solid var(--pink);
+            border-radius: 30px;
+            text-align: center;
+            z-index: 200;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 40px rgba(255, 50, 100, 0.3);
+            box-sizing: border-box;
+        }
+
+        .timer-box {
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(255, 50, 100, 0.1);
+            margin: 20px 0;
+            border: 1px solid rgba(255,50,100,0.2);
+        }
+
+        #toggleBtn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 300;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            padding: 0;
+            font-size: 24px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px var(--pink);
+            border: none;
+            background: var(--pink);
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="mainText">Are ya beautiful, my dear ? <3</h1>
+    <div id="countdown"></div>
+
+    <div id="btnWrapper">
+        <button id="yesBtn">Yes</button>
+        <button id="noBtn">No</button>
+    </div>
+
+    <div id="noPopup">
+        <h2 style="color:var(--pink); font-size: 1.8rem; padding: 0 25px;">TT stop lying, presss itt!</h2>
+        <button id="forceYesBtn" style="margin-top: 30px; transform: scale(1.2);">YESSS !!!!!</button>
+    </div>
+
+    <div id="finalOverlay">
+        <h1 style="color:var(--pink); font-size: 2.2em; margin: 0 0 10px 0;">Happy Birthday my dear.</h1>
+        <p style="font-size: 1.2em; margin: 0;">Now imnt pdf file anymore. 🙆‍♂️</p>
+        <div class="timer-box">
+            <p style="color: var(--pink); font-weight: bold; font-size: 0.9em; margin: 0; letter-spacing: 1px;">TIME SPENT WITH YA, MY DEAR</p>
+            <p id="timer" style="font-family: monospace; font-size: 1.5em; margin-top: 10px; font-weight: bold; color: #fff;"></p>
+        </div>
+    </div>
+
+    <button id="toggleBtn" onclick="toggleWindow()">💖</button>
+
+    <canvas id="heartCanvas"></canvas>
+
+    <script>
+        const yesBtn = document.getElementById('yesBtn'), noBtn = document.getElementById('noBtn');
+        const forceYes = document.getElementById('forceYesBtn'), noPopup = document.getElementById('noPopup');
+        const mainText = document.getElementById('mainText'), canvas = document.getElementById('heartCanvas');
+        const finalOverlay = document.getElementById('finalOverlay'), countDiv = document.getElementById('countdown'), ctx = canvas.getContext('2d');
+        const toggleBtn = document.getElementById('toggleBtn');
+
+        let noCount = 0, yesScale = 1, a = 0, tinyHearts = [], mouse = { x: -1000, y: -1000 }, showFlame = true;
+
+        const handleInput = (e) => { const t = e.touches ? e.touches[0] : e; mouse.x = t.clientX; mouse.y = t.clientY; };
+        window.addEventListener('mousemove', handleInput); window.addEventListener('touchstart', handleInput);
+
+        function moveNoSafe() {
+            noBtn.style.position = 'fixed';
+            const yesRect = yesBtn.getBoundingClientRect();
+            const btnW = noBtn.offsetWidth, btnH = noBtn.offsetHeight;
+            let nx, ny, dist, attempts = 0;
+            do {
+                nx = Math.random() * (window.innerWidth - btnW - 40) + 20;
+                ny = Math.random() * (window.innerHeight - btnH - 40) + 20;
+                const dx = nx + (btnW / 2) - (yesRect.left + yesRect.width / 2);
+                const dy = ny + (btnH / 2) - (yesRect.top + yesRect.height / 2);
+                dist = Math.sqrt(dx * dx + dy * dy);
+                attempts++;
+            } while (dist < (160 * yesScale) && attempts < 100);
+            noBtn.style.left = nx + 'px'; noBtn.style.top = ny + 'px';
+        }
+
+        const onNo = (e) => {
+            e.preventDefault(); noCount++;
+            yesScale = Math.pow(1.35, noCount);
+            yesBtn.style.transform = `scale(${yesScale})`;
+            noBtn.style.opacity = Math.max(1 - (noCount * 0.12), 0.2);
+            moveNoSafe();
+            if (noCount >= 6) noPopup.style.display = 'flex';
+        };
+
+        const onYes = (e) => { e.preventDefault(); noPopup.style.display = 'none'; startExperience(); };
+
+        noBtn.addEventListener('touchstart', onNo); noBtn.addEventListener('mousedown', onNo);
+        yesBtn.addEventListener('touchstart', onYes); yesBtn.addEventListener('mousedown', onYes);
+        forceYes.addEventListener('touchstart', onYes); forceYes.addEventListener('mousedown', onYes);
+
+        function startExperience() {
+            document.getElementById('btnWrapper').style.display = 'none';
+            mainText.style.display = 'none'; canvas.style.display = 'block';
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            for (let i = 0; i < 35; i++) tinyHearts.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, baseSize: 5 + Math.random() * 8, speed: 0.3 + Math.random() * 0.4, baseOpacity: 0.1 + Math.random() * 0.25 });
+            animate();
+
+            let count = 3;
+            countDiv.style.display = 'block';
+            let timer = setInterval(() => {
+                countDiv.innerHTML = "Blow the candle in... " + count;
+                if (count > 0) {
+                    count--;
+                } else {
+                    clearInterval(timer);
+                    // Hide text AFTER "1" has been shown for its full second
+                    setTimeout(() => {
+                        countDiv.style.display = 'none';
+                        // Silent gap
+                        setTimeout(() => {
+                            showFlame = false;
+                            setTimeout(() => {
+                                finalOverlay.style.display = 'block';
+                                toggleBtn.style.display = 'flex';
+                                startTimer();
+                            }, 1200);
+                        }, 1500);
+                    }, 1000);
+                }
+            }, 1000);
+        }
+
+        function startTimer() {
+            const confession = new Date(2025, 8, 15, 19, 11);
+            setInterval(() => {
+                const diff = new Date() - confession;
+                document.getElementById('timer').innerHTML = Math.floor(diff / 864e5) + "d " + Math.floor((diff / 36e5) % 24) + "h " + Math.floor((diff / 6e4) % 60) + "m " + Math.floor((diff / 1e3) % 60) + "s";
+            }, 1000);
+        }
+
+        function toggleWindow() {
+            finalOverlay.style.display = (finalOverlay.style.display === 'none') ? 'block' : 'none';
+        }
+
+        function drawFlame(x, y) {
+            if (!showFlame) return;
+            ctx.save(); ctx.translate(x, y + Math.sin(a * 10) * 2);
+            ctx.shadowBlur = 15; ctx.shadowColor = "orange";
+            const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 15);
+            g.addColorStop(0, "white"); g.addColorStop(0.3, "orange"); g.addColorStop(1, "transparent");
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawCake(x, y) {
+            const sf = Math.min(canvas.width / 520, 0.9);
+            const layers = [
+                { w: 400 * sf, h: 75 * sf, b: "#4d0000", t: "#600000" },
+                { w: 320 * sf, h: 65 * sf, b: "#800000", t: "#990000" },
+                { w: 240 * sf, h: 55 * sf, b: "#b30000", t: "#cc0000" },
+                { w: 160 * sf, h: 45 * sf, b: "#ff3264", t: "#ff4d79" }
+            ];
+            let curY = y;
+            layers.forEach((l) => {
+                const eh = l.w * 0.18; ctx.fillStyle = l.b; ctx.fillRect(x - l.w / 2, curY - l.h, l.w, l.h);
+                ctx.beginPath(); ctx.ellipse(x, curY, l.w / 2, eh / 2, 0, 0, Math.PI); ctx.fill();
+                ctx.fillStyle = l.t; ctx.beginPath(); ctx.ellipse(x, curY - l.h, l.w / 2, eh / 2, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 3;
+                for (let ix = -l.w / 2; ix <= l.w / 2; ix += 3) {
+                    const cy = Math.sqrt(1 - Math.pow(ix / (l.w / 2), 2)) * (eh / 2);
+                    ctx.lineTo(x + ix, (curY - l.h) + cy + Math.sin(ix * 0.1 + a) * 7 + 2);
+                }
+                ctx.stroke(); curY -= l.h;
+            });
+            ctx.fillStyle = "#fff"; ctx.fillRect(x - 5, curY - 35, 10, 35); drawFlame(x, curY - 45);
+        }
+
+        function animate() {
+            ctx.fillStyle = "black"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            tinyHearts.forEach(h => {
+                h.y -= h.speed; if (h.y < -50) h.y = canvas.height + 50;
+                let d = Math.sqrt((mouse.x - h.x) ** 2 + (mouse.y - h.y) ** 2), e = d < 160 ? (1 - d / 160) : 0;
+                ctx.save(); ctx.globalAlpha = h.baseOpacity + e; ctx.strokeStyle = "#ff3264"; ctx.lineWidth = 1.2 + e * 2;
+                ctx.beginPath(); let s = h.baseSize + e * 12;
+                for (let i = -2.236; i <= 2.236; i += 0.15) {
+                    const dy = Math.pow(Math.abs(i), 2 / 3) + Math.sqrt(Math.max(0, 5 - i * i)) * Math.sin(a * Math.PI * i);
+                    ctx.lineTo(h.x + i * s, h.y - dy * s);
+                }
+                ctx.stroke(); ctx.restore();
+            });
+            drawCake(canvas.width / 2, canvas.height / 2 + 130); a += 0.05; requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>
